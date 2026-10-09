@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /assets/
+Disallow: /Commericals/
+Disallow: /DDM/
+Disallow: /Website%20Tour/

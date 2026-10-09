@@ -1,0 +1,389 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Video Showcase</title>
+<meta name="robots" content="noindex, nofollow, noarchive">
+<meta name="description" content="Website tours, Digital Doorway Marketing videos and commercials.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b24;
+    --surface-2: #1e2531;
+    --line: #2a3242;
+    --text: #eef1f6;
+    --muted: #9aa4b5;
+    --accent: #e8b04b;
+    --accent-ink: #1a1305;
+    --radius: 14px;
+    --max: 1200px;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 80px; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font: 16px/1.55 Inter, system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: var(--max); margin: 0 auto; padding: 0 24px; }
+
+  /* Header */
+  header.top {
+    position: sticky; top: 0; z-index: 10;
+    background: rgba(13, 17, 23, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--line);
+  }
+  header.top .wrap { display: flex; align-items: center; gap: 24px; height: 64px; }
+  .brand { font: 700 20px/1 Fraunces, Georgia, serif; text-decoration: none; white-space: nowrap; }
+  .brand span { color: var(--accent); }
+  nav.links { display: flex; gap: 4px; margin-left: auto; overflow-x: auto; scrollbar-width: none; }
+  nav.links::-webkit-scrollbar { display: none; }
+  nav.links a {
+    padding: 8px 14px; border-radius: 999px; text-decoration: none;
+    color: var(--muted); font-size: 14px; font-weight: 500; white-space: nowrap;
+  }
+  nav.links a:hover { color: var(--text); background: var(--surface-2); }
+
+  /* Hero */
+  .hero { padding: 72px 0 40px; }
+  .eyebrow { color: var(--accent); font-size: 13px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+  .hero h1 {
+    font: 700 clamp(36px, 6vw, 64px)/1.05 Fraunces, Georgia, serif;
+    margin: 12px 0 16px; letter-spacing: -0.02em; max-width: 14ch;
+  }
+  .hero p { color: var(--muted); font-size: 18px; max-width: 56ch; margin: 0; }
+  .stats { display: flex; flex-wrap: wrap; gap: 32px; margin-top: 32px; }
+  .stats div { font-size: 14px; color: var(--muted); }
+  .stats strong { display: block; font: 700 28px/1.1 Fraunces, Georgia, serif; color: var(--text); }
+
+  /* Partner links */
+  .partners { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 8px 0 24px; }
+  .partner {
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 20px; border-radius: var(--radius);
+    background: var(--surface); border: 1px solid var(--line);
+    text-decoration: none; transition: border-color .2s, transform .2s;
+  }
+  .partner:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .partner .tag { font-size: 12px; color: var(--accent); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; }
+  .partner .name { font: 700 20px/1.2 Fraunces, Georgia, serif; }
+  .partner .desc { color: var(--muted); font-size: 14px; }
+  .partner .go { margin-top: auto; padding-top: 8px; font-size: 14px; font-weight: 600; }
+  .partner .go::after { content: " →"; }
+
+  /* Sections */
+  section.cat { padding: 48px 0 16px; }
+  .cat-head { display: flex; align-items: end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 24px; }
+  .cat-head h2 { font: 700 clamp(28px, 4vw, 38px)/1.1 Fraunces, Georgia, serif; margin: 6px 0 0; letter-spacing: -0.01em; }
+  .cat-head p { color: var(--muted); margin: 8px 0 0; max-width: 60ch; }
+  .count { color: var(--muted); font-size: 14px; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 24px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    overflow: hidden; display: flex; flex-direction: column;
+    transition: border-color .2s, transform .2s;
+  }
+  .card:hover { border-color: #3a4459; transform: translateY(-2px); }
+  .thumb {
+    position: relative; display: block; width: 100%; aspect-ratio: 16 / 9;
+    padding: 0; border: 0; cursor: pointer; background: #000;
+  }
+  .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: opacity .2s; }
+  .thumb:hover img { opacity: .85; }
+  .thumb .play {
+    position: absolute; inset: 0; margin: auto; width: 60px; height: 60px; border-radius: 50%;
+    background: rgba(0,0,0,.55); border: 2px solid rgba(255,255,255,.85);
+    display: grid; place-items: center; transition: background .2s, transform .2s;
+  }
+  .thumb:hover .play { background: var(--accent); border-color: var(--accent); transform: scale(1.06); }
+  .thumb .play::before {
+    content: ""; margin-left: 4px;
+    border-left: 16px solid #fff; border-top: 10px solid transparent; border-bottom: 10px solid transparent;
+  }
+  .thumb:hover .play::before { border-left-color: var(--accent-ink); }
+  .thumb .dur {
+    position: absolute; right: 10px; bottom: 10px; padding: 2px 8px; border-radius: 6px;
+    background: rgba(0,0,0,.75); color: #fff; font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums;
+  }
+  .card .body { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 6px; flex: 1; }
+  .card h3 { margin: 0; font-size: 17px; font-weight: 600; line-height: 1.3; }
+  .card p { margin: 0; color: var(--muted); font-size: 14px; }
+  .card .related {
+    margin-top: auto; padding-top: 10px; font-size: 14px; font-weight: 600;
+    color: var(--accent); text-decoration: none; align-self: flex-start;
+  }
+  .card .related:hover { text-decoration: underline; }
+
+  .audio {
+    margin-top: 24px; padding: 18px 20px; border-radius: var(--radius);
+    background: var(--surface); border: 1px solid var(--line);
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+  }
+  .audio .label { font-weight: 600; }
+  .audio .label small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; }
+  .audio audio { flex: 1; min-width: 240px; }
+
+  footer { border-top: 1px solid var(--line); margin-top: 64px; padding: 32px 0 48px; color: var(--muted); font-size: 14px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 12px 24px; justify-content: space-between; }
+  footer nav { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  footer a { text-decoration: none; }
+  footer a:hover { color: var(--text); }
+
+  /* Player */
+  dialog.player {
+    width: min(1100px, 94vw); padding: 0; border: 1px solid var(--line); border-radius: var(--radius);
+    background: var(--surface); color: var(--text); overflow: hidden;
+  }
+  dialog.player::backdrop { background: rgba(5, 7, 10, .85); }
+  dialog.player video { display: block; width: 100%; max-height: 75vh; background: #000; }
+  .player-bar { display: flex; align-items: center; gap: 16px; padding: 14px 18px; }
+  .player-bar h3 { margin: 0; font-size: 16px; font-weight: 600; flex: 1; }
+  .player-bar a { color: var(--accent); font-size: 14px; font-weight: 600; text-decoration: none; }
+  .close {
+    background: var(--surface-2); color: var(--text); border: 1px solid var(--line);
+    border-radius: 999px; padding: 6px 14px; font: inherit; font-size: 14px; cursor: pointer;
+  }
+  .close:hover { border-color: var(--accent); }
+
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  @media (max-width: 640px) {
+    .wrap { padding: 0 16px; }
+    header.top .wrap { gap: 12px; }
+    .hero { padding: 48px 0 24px; }
+    .grid { grid-template-columns: 1fr; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    * { transition: none !important; }
+  }
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#top">Video <span>Showcase</span></a>
+    <nav class="links" id="nav"></nav>
+  </div>
+</header>
+
+<main id="top">
+  <div class="wrap">
+    <section class="hero">
+      <div class="eyebrow">Portfolio</div>
+      <h1>Websites, promos &amp; commercials.</h1>
+      <p>Guided website tours, Digital Doorway Marketing videos and commercials, all in one place. Click any video to watch.</p>
+      <div class="stats" id="stats"></div>
+    </section>
+
+    <section id="build" aria-labelledby="build-h">
+      <div class="cat-head">
+        <div>
+          <div class="eyebrow">Build your own</div>
+          <h2 id="build-h">Website builders &amp; tools</h2>
+        </div>
+      </div>
+      <div class="partners" id="partners"></div>
+    </section>
+
+    <div id="sections"></div>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year"></span> Video Showcase</span>
+    <nav id="footer-links"></nav>
+  </div>
+</footer>
+
+<dialog class="player" id="player" aria-labelledby="player-title">
+  <video id="player-video" controls playsinline preload="metadata"></video>
+  <div class="player-bar">
+    <h3 id="player-title"></h3>
+    <a id="player-link" target="_blank" rel="noopener" hidden></a>
+    <button class="close" id="player-close" type="button">Close</button>
+  </div>
+</dialog>
+
+<script>
+  // ---- Edit links here ----------------------------------------------------
+  // Set each url to the live address. Leave it empty ("") to hide that link.
+  const LINKS = {
+    boomtownrat: {
+      name: "BoomTownRat.com",
+      tag: "Website building",
+      desc: "Custom websites designed and built for your business.",
+      url: "https://www.boomtownrat.com",
+    },
+    broker: {
+      name: "Insurance Broker Template",
+      tag: "Website builder",
+      desc: "A ready-made website builder for insurance and Medicare brokers.",
+      url: "https://earthwisegrounding.github.io/broker-site-builder/",
+    },
+    repdesk: {
+      name: "RepDesk",
+      tag: "Platform",
+      desc: "Salesperson pages and lead management.",
+      url: "",
+    },
+    colorado3d: {
+      name: "Colorado 3D Design Landscape",
+      tag: "3D landscape design",
+      desc: "Design a Colorado landscape in 3D, as seen in the Prolawn 3D Design tour.",
+      url: "https://earthwisegrounding.github.io/verdura/prolawn/designer.html",
+    },
+  };
+
+  // ---- Videos ---------------------------------------------------------------
+  // file: path relative to this page. dur: seconds. link: key from LINKS above.
+  const CATEGORIES = [
+    {
+      id: "website-tours",
+      eyebrow: "Walkthroughs",
+      title: "Website Tours",
+      desc: "Guided tours of finished client websites and platforms.",
+      videos: [
+        { title: "RepDesk Website Tour", file: "Website Tour/RepDesk Website Tour.mp4", poster: "repdesk-website-tour", dur: 453, link: "repdesk" },
+        { title: "Medicare Video for Broker Template", file: "Website Tour/Medicare Video for Broker Template.mp4", poster: "medicare-video-for-broker-template", dur: 52, link: "broker" },
+        { title: "Prolawn Website Tour: 3D Design", file: "Website Tour/Prolawn Website Tour 3D Design.mp4", poster: "prolawn-website-tour-3d-design", dur: 305, link: "colorado3d" },
+        { title: "Prolawn Website Tour", file: "Website Tour/Prolawn Website Tour.mp4", poster: "prolawn-website-tour", dur: 172 },
+        { title: "Hudson Auto Website Tour", file: "Website Tour/Hudson Auto Website Tour.mp4", poster: "hudson-auto-website-tour", dur: 293 },
+        { title: "Adrian Manns Website Tour", file: "Website Tour/Adrian Manns Website Tour.mp4", poster: "adrian-manns-website-tour", dur: 209 },
+        { title: "Alex Scott Website Tour", file: "Website Tour/Alex Scott Website Tour.mp4", poster: "alex-scott-website-tour", dur: 178 },
+      ],
+    },
+    {
+      id: "digital-doorway",
+      eyebrow: "Agency",
+      title: "Digital Doorway Marketing",
+      desc: "Explainers, promos and recruitment videos for Digital Doorway Marketing.",
+      videos: [
+        { title: "Explainer", file: "DDM/DigitalDoorwayMarketing Explainer.mp4", poster: "digitaldoorwaymarketing-explainer", dur: 105 },
+        { title: "Commercial", file: "DDM/DigitalDoorwayMarketing Commerical.mp4", poster: "digitaldoorwaymarketing-commerical", dur: 28 },
+        { title: "Promo 1", file: "DDM/DigitalDoorwayMarketing Promo1.mp4", poster: "digitaldoorwaymarketing-promo1", dur: 32 },
+        { title: "Promo 2", file: "DDM/DigitalDoorwayMarketing Promo2.mp4", poster: "digitaldoorwaymarketing-promo2", dur: 35 },
+        { title: "Recruitment", file: "DDM/DigitalDoorwayMarketing Recruitment.mp4", poster: "digitaldoorwaymarketing-recruitment", dur: 119 },
+        { title: "You Incorporated", file: "DDM/DigitalDoorwayMarketing You Incorporated.mp4", poster: "digitaldoorwaymarketing-you-incorporated", dur: 180 },
+      ],
+      audio: { title: "You Incorporated", note: "Audio only", file: "DDM/You Incorporated.mp3" },
+    },
+    {
+      id: "commercials",
+      eyebrow: "Spots",
+      title: "Commercials",
+      desc: "Short-form commercials and brand spots.",
+      videos: [
+        { title: "Buy TFP: Spot 1", file: "Commericals/BuyTFP1.mp4", poster: "buytfp1", dur: 36 },
+        { title: "Buy TFP: Spot 2", file: "Commericals/BuyTFP2.mp4", poster: "buytfp2", dur: 38 },
+        { title: "Buy TFP: Spot 3", file: "Commericals/BuyTFP3.mp4", poster: "buytfp3", dur: 73 },
+        { title: "Buy TFP: Spot 4", file: "Commericals/BuyTFP4.mp4", poster: "buytfp4", dur: 30 },
+        { title: "Fyn Photo Co.", file: "Commericals/FynPhotoCo.mp4", poster: "fynphotoco", dur: 29 },
+        { title: "Spoken Jazz", file: "Commericals/SpokenJazz.mp4", poster: "spokenjazz", dur: 102 },
+      ],
+    },
+  ];
+
+  // ---- Rendering -------------------------------------------------------------
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const fmt = s => `${Math.floor(s / 60)}:${String(Math.round(s % 60)).padStart(2, "0")}`;
+  const linkOf = key => (key && LINKS[key] && LINKS[key].url) ? LINKS[key] : null;
+
+  const all = CATEGORIES.flatMap(c => c.videos);
+  const totalMin = Math.round(all.reduce((n, v) => n + v.dur, 0) / 60);
+  document.getElementById("stats").innerHTML = `
+    <div><strong>${all.length}</strong>videos</div>
+    <div><strong>${CATEGORIES.length}</strong>collections</div>
+    <div><strong>${totalMin} min</strong>of footage</div>`;
+
+  document.getElementById("nav").innerHTML =
+    CATEGORIES.map(c => `<a href="#${c.id}">${esc(c.title)}</a>`).join("") +
+    `<a href="#build">Builders</a>`;
+
+  const live = Object.values(LINKS).filter(l => l.url);
+  document.getElementById("partners").innerHTML = live.map(l => `
+    <a class="partner" href="${esc(l.url)}" target="_blank" rel="noopener">
+      <span class="tag">${esc(l.tag)}</span>
+      <span class="name">${esc(l.name)}</span>
+      <span class="desc">${esc(l.desc)}</span>
+      <span class="go">Visit ${esc(l.name)}</span>
+    </a>`).join("");
+  document.getElementById("build").hidden = live.length === 0;
+  document.getElementById("footer-links").innerHTML =
+    live.map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener">${esc(l.name)}</a>`).join("");
+  document.getElementById("year").textContent = new Date().getFullYear();
+
+  document.getElementById("sections").innerHTML = CATEGORIES.map(c => `
+    <section class="cat" id="${c.id}" aria-labelledby="${c.id}-h">
+      <div class="cat-head">
+        <div>
+          <div class="eyebrow">${esc(c.eyebrow)}</div>
+          <h2 id="${c.id}-h">${esc(c.title)}</h2>
+          <p>${esc(c.desc)}</p>
+        </div>
+        <span class="count">${c.videos.length} videos</span>
+      </div>
+      <div class="grid">
+        ${c.videos.map(v => {
+          const l = linkOf(v.link);
+          const i = all.indexOf(v);
+          return `
+          <article class="card">
+            <button class="thumb" type="button" data-i="${i}" aria-label="Play ${esc(v.title)}">
+              <img src="assets/posters/${v.poster}.jpg" alt="" loading="lazy" width="800" height="450">
+              <span class="play" aria-hidden="true"></span>
+              <span class="dur">${fmt(v.dur)}</span>
+            </button>
+            <div class="body">
+              <h3>${esc(v.title)}</h3>
+              <p>${esc(c.title)} · ${fmt(v.dur)}</p>
+              ${l ? `<a class="related" href="${esc(l.url)}" target="_blank" rel="noopener">Visit ${esc(l.name)} →</a>` : ""}
+            </div>
+          </article>`;
+        }).join("")}
+      </div>
+      ${c.audio ? `
+      <div class="audio">
+        <div class="label">${esc(c.audio.title)}<small>${esc(c.audio.note)}</small></div>
+        <audio controls preload="none" src="${encodeURI(c.audio.file)}"></audio>
+      </div>` : ""}
+    </section>`).join("");
+
+  // ---- Player ------------------------------------------------------------------
+  const dlg = document.getElementById("player");
+  const vid = document.getElementById("player-video");
+  const pTitle = document.getElementById("player-title");
+  const pLink = document.getElementById("player-link");
+
+  document.getElementById("sections").addEventListener("click", e => {
+    const btn = e.target.closest(".thumb");
+    if (!btn) return;
+    const v = all[+btn.dataset.i];
+    vid.src = encodeURI(v.file);
+    vid.poster = `assets/posters/${v.poster}.jpg`;
+    pTitle.textContent = v.title;
+    const l = linkOf(v.link);
+    pLink.hidden = !l;
+    if (l) { pLink.href = l.url; pLink.textContent = `Visit ${l.name} →`; }
+    dlg.showModal();
+    vid.play().catch(() => {});
+  });
+  const close = () => dlg.close();
+  document.getElementById("player-close").addEventListener("click", close);
+  dlg.addEventListener("click", e => { if (e.target === dlg) close(); });
+  dlg.addEventListener("close", () => { vid.pause(); vid.removeAttribute("src"); vid.load(); });
+</script>
+</body>
+</html>
