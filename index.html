@@ -201,6 +201,12 @@
   }
   .hero h1.pop { animation: pop .9s cubic-bezier(.2, 1.4, .4, 1) both; }
   @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
+  /* Marv dances along the bottom of the page while the song plays */
+  #marv {
+    position: fixed; left: 0; bottom: 0; width: 100%; pointer-events: none; z-index: 15;
+    opacity: 0; transition: opacity .6s ease;
+  }
+  #marv.on { opacity: 1; }
   .music {
     position: fixed; right: 16px; bottom: 16px; z-index: 20;
     display: flex; align-items: center; gap: 8px;
@@ -281,6 +287,7 @@
     <p>Tap to enter. Sound on 🔊</p>
   </div>
 </div>
+<canvas id="marv" aria-hidden="true"></canvas>
 <audio id="song" src="assets/audio/brother-reeves.mp3" preload="auto" loop></audio>
 <button class="music" id="music" type="button" aria-pressed="false">
   <span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>
@@ -639,6 +646,169 @@
     welcome();
   });
   document.querySelector(".brand").addEventListener("click", () => celebrate(5000));
+</script>
+
+<script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+    }
+  }
+</script>
+<script type="module">
+  // ---- Dancing Marv ------------------------------------------------------------
+  // Marv from Clash of the Titans struts along the bottom of the page while the
+  // song plays: he walks (or runs) to a new spot, dances, and now and then
+  // throws a punch, kick or jump. Three.js and his model load on first play.
+  const song = document.getElementById("song");
+  const canvas = document.getElementById("marv");
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    let stage = null, loading = null, raf = 0, hideTimer = 0;
+
+    async function load() {
+      const THREE = await import("three");
+      const { GLTFLoader } = await import("three/addons/loaders/GLTFLoader.js");
+      const gltf = await new GLTFLoader().loadAsync("assets/marv.glb");
+
+      const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+      const scene = new THREE.Scene();
+      const camera = new THREE.OrthographicCamera(0, 1, 1, 0, -2000, 2000);
+      camera.position.z = 1000;
+      scene.add(new THREE.HemisphereLight(0xfff4e0, 0x30384a, 2.2));
+      const sun = new THREE.DirectionalLight(0xffffff, 2.4);
+      sun.position.set(300, 600, 800);
+      scene.add(sun);
+
+      // Normalise the model to 1 unit tall, feet on the ground, centred.
+      const visual = gltf.scene;
+      const box = new THREE.Box3().setFromObject(visual);
+      const unit = 1 / (box.max.y - box.min.y);
+      visual.scale.setScalar(unit);
+      visual.position.set(-(box.min.x + box.max.x) / 2 * unit, -box.min.y * unit, -(box.min.z + box.max.z) / 2 * unit);
+      visual.traverse(o => { if (o.isMesh) o.frustumCulled = false; });
+      const marv = new THREE.Group();
+      marv.add(visual);
+      const shadow = new THREE.Mesh(
+        new THREE.CircleGeometry(0.5, 32),
+        new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.35, depthWrite: false })
+      );
+      shadow.renderOrder = -1;
+      scene.add(shadow, marv);
+
+      // Keep his clips in place (same fix as the game) so we steer him ourselves.
+      const mixer = new THREE.AnimationMixer(visual);
+      const spine = visual.getObjectByName("spine");
+      const actions = {};
+      for (const src of gltf.animations) {
+        const clip = src.clone();
+        const track = clip.tracks.find(t => t.name === "spine.position");
+        if (track && spine) for (let i = 0; i < track.values.length; i += 3) {
+          track.values[i] = spine.position.x;
+          track.values[i + 2] = spine.position.z;
+        }
+        actions[clip.name] = mixer.clipAction(clip);
+      }
+      let current = null;
+      const play = (name, { once = false, speed = 1 } = {}) => {
+        const next = actions[name];
+        if (!next || current === next) return next;
+        next.reset().setEffectiveTimeScale(speed).setEffectiveWeight(1);
+        next.setLoop(once ? THREE.LoopOnce : THREE.LoopRepeat, once ? 1 : Infinity);
+        next.clampWhenFinished = once;
+        next.play();
+        if (current) next.crossFadeFrom(current, 0.25, true);
+        current = next;
+        return next;
+      };
+
+      let W = 0, size = 0;
+      const resize = () => {
+        W = innerWidth;
+        size = Math.round(Math.min(240, Math.max(130, innerHeight * 0.26)));
+        const h = Math.round(size * 1.5);
+        canvas.style.height = h + "px";
+        renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+        renderer.setSize(W, h, false);
+        camera.right = W; camera.top = h; camera.updateProjectionMatrix();
+        marv.scale.setScalar(size);
+        shadow.scale.set(size * 0.55, size * 0.08, 1);
+        x = Math.min(Math.max(x, margin()), W - margin());
+      };
+      const margin = () => size * 0.4;
+      let x = innerWidth * 0.2;
+      addEventListener("resize", () => stage && resize());
+
+      // Choreography: walk somewhere, dance, maybe show off a move, repeat.
+      const DANCES = ["dance1", "dance2", "dance3"];
+      const MOVES = [["punch", 1.4], ["kick", 1.2], ["jump", 1]];
+      let danceIx = 0, mode = "", timer = 0, targetX = x, speed = 0, facing = 0;
+      function next() {
+        if (mode !== "dance" && mode !== "move") {
+          mode = "dance";
+          const a = play(DANCES[danceIx++ % DANCES.length]);
+          const d = a.getClip().duration;
+          timer = d < 5 ? d * 2 : d;
+        } else if (mode === "dance" && Math.random() < 0.4) {
+          mode = "move";
+          const [name, sp] = MOVES[(Math.random() * MOVES.length) | 0];
+          const a = play(name, { once: true, speed: sp });
+          timer = a.getClip().duration / sp;
+        } else {
+          mode = "walk";
+          const lo = margin(), hi = W - margin();
+          do { targetX = lo + Math.random() * (hi - lo); } while (Math.abs(targetX - x) < (hi - lo) * 0.25 && hi - lo > 50);
+          const run = Math.abs(targetX - x) > W * 0.45 && Math.random() < 0.6;
+          play(run ? "run" : "walk");
+          speed = size * (run ? 3.2 : 1.5);
+        }
+      }
+
+      const clock = new THREE.Clock();
+      function frame() {
+        raf = requestAnimationFrame(frame);
+        const dt = Math.min(clock.getDelta(), 0.1);
+        if (mode === "walk") {
+          const step = Math.sign(targetX - x) * speed * dt;
+          facing = step > 0 ? Math.PI / 2 : -Math.PI / 2;
+          if (Math.abs(targetX - x) <= Math.abs(step)) { x = targetX; mode = "arrive"; next(); }
+          else x += step;
+        } else {
+          facing = 0.35 * Math.sign(W / 2 - x || 1); // three-quarter turn toward the page
+          if ((timer -= dt) <= 0) next();
+        }
+        marv.rotation.y += (facing - marv.rotation.y) * (1 - Math.exp(-dt * 10));
+        marv.position.set(x, size * 0.06, 0);
+        shadow.position.set(x, size * 0.06, -500);
+        mixer.update(dt);
+        renderer.render(scene, camera);
+      }
+
+      stage = {
+        start() { clock.getDelta(); if (!raf) frame(); },
+        stop() { cancelAnimationFrame(raf); raf = 0; },
+      };
+      resize();
+      next();
+    }
+
+    function show() {
+      clearTimeout(hideTimer);
+      loading ||= load().catch(err => console.warn("Marv could not load", err));
+      loading.then(() => {
+        if (!stage || song.paused) return;
+        stage.start();
+        canvas.classList.add("on");
+      });
+    }
+    function hide() {
+      canvas.classList.remove("on");
+      hideTimer = setTimeout(() => stage && stage.stop(), 700);
+    }
+    song.addEventListener("play", show);
+    song.addEventListener("pause", hide);
+    if (!song.paused) show();
+  }
 </script>
 </body>
 </html>
