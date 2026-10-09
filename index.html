@@ -173,6 +173,31 @@
     70% { box-shadow: 0 0 0 28px rgba(232, 176, 75, 0); }
     100% { box-shadow: 0 0 0 0 rgba(232, 176, 75, 0); }
   }
+  .intro {
+    position: fixed; inset: 0; z-index: 45; display: grid; place-items: center;
+    background: #000; overflow: hidden; transition: opacity .7s ease;
+  }
+  .intro[hidden] { display: none; }
+  .intro.out { opacity: 0; }
+  .intro-bg {
+    position: absolute; inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px);
+    object-fit: cover; filter: blur(28px) brightness(.55) saturate(1.4);
+  }
+  .intro-fg {
+    position: relative; height: min(90vh, 900px); aspect-ratio: 9 / 16; max-width: 92vw;
+    object-fit: cover; border-radius: 20px; box-shadow: 0 30px 80px rgba(0, 0, 0, .6);
+    animation: introIn .6s cubic-bezier(.2, 1.3, .4, 1) both;
+  }
+  @keyframes introIn { from { transform: scale(.85); opacity: 0; } to { transform: none; opacity: 1; } }
+  .intro .skip {
+    position: absolute; right: 16px; top: 16px; z-index: 1;
+    background: rgba(0, 0, 0, .5); color: #fff; border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 999px; padding: 8px 16px; font: 600 14px Inter, sans-serif; cursor: pointer;
+  }
+  .intro .skip:hover { border-color: var(--accent); }
+  @media (max-aspect-ratio: 3 / 4) {
+    .intro-fg { height: 100%; width: 100%; max-width: none; border-radius: 0; }
+  }
   .hero h1.pop { animation: pop .9s cubic-bezier(.2, 1.4, .4, 1) both; }
   @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: none; opacity: 1; } }
   .music {
@@ -243,6 +268,11 @@
   </div>
 </footer>
 
+<div class="intro" id="intro" hidden>
+  <video class="intro-bg" id="intro-bg" src="assets/video/intro.mp4" poster="assets/video/intro-poster.jpg" muted playsinline preload="auto" aria-hidden="true"></video>
+  <video class="intro-fg" id="intro-video" src="assets/video/intro.mp4" poster="assets/video/intro-poster.jpg" muted playsinline preload="auto"></video>
+  <button class="skip" id="intro-skip" type="button">Skip intro</button>
+</div>
 <canvas id="party" aria-hidden="true"></canvas>
 <div class="enter" id="enter" hidden>
   <div>
@@ -518,7 +548,7 @@
     const active = now < until;
     if (active) {
       if (Math.random() < 0.06) launch();
-      if (Math.random() < 0.35) dropBill();
+      if (Math.random() < 0.25) dropBill();
     }
     ctx.clearRect(0, 0, W, H);
 
@@ -566,14 +596,39 @@
   // Browsers usually block sound until the visitor interacts, so try autoplay
   // first and fall back to a one-tap "enter" screen that starts both together.
   const enter = document.getElementById("enter");
-  playSong().then(() => celebrate()).catch(() => {
+  const intro = document.getElementById("intro");
+  const introVids = [document.getElementById("intro-video"), document.getElementById("intro-bg")];
+  let introTimer = 0;
+
+  function endIntro() {
+    if (intro.hidden || intro.classList.contains("out")) return;
+    clearTimeout(introTimer);
+    intro.classList.add("out");
+    setTimeout(() => { intro.hidden = true; introVids.forEach(v => v.pause()); }, 700);
+  }
+  function playIntro() {
+    if (reduceMotion) return;
+    intro.hidden = false;
+    introVids.forEach(v => { v.currentTime = 0; v.play().catch(() => {}); });
+    introTimer = setTimeout(endIntro, 6000); // fallback if the clip can't play
+  }
+  introVids[0].addEventListener("ended", endIntro);
+  document.getElementById("intro-skip").addEventListener("click", endIntro);
+
+  // The intro clip plays with the song while fireworks and cash fall over it,
+  // then fades to reveal the page as the celebration carries on.
+  function welcome() {
+    playIntro();
+    celebrate(11000);
+  }
+  playSong().then(welcome).catch(() => {
     enter.hidden = false;
     document.getElementById("enter-btn").focus();
   });
   document.getElementById("enter-btn").addEventListener("click", () => {
     enter.hidden = true;
     playSong().catch(() => {});
-    celebrate();
+    welcome();
   });
   document.querySelector(".brand").addEventListener("click", () => celebrate(5000));
 </script>
